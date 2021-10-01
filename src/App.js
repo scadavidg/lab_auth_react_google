@@ -1,25 +1,63 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from 'react';
+import AppBar from "@material-ui/core/AppBar";
+import Toolbar from '@material-ui/core/Toolbar';
+import Typography from '@material-ui/core/Typography';
+import Button from '@material-ui/core/Button';
 
-function App() {
+import firebase from 'firebase/app';
+import 'firebase/auth';
+
+export function App() {
+
+  const provider = new firebase.auth.GoogleAuthProvider();
+
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        setUser(user.email)
+        console.log("estas logueado")
+      } else {
+        console.log("no logueado")
+      }
+    })
+  }, [])
+
+  const signInWithGoogle = () => {
+    firebase.auth().signInWithPopup(provider)
+      .then((result) => {
+        console.log("estoy logeado con google")
+      }).catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        const credential = error.credential
+        console.log(`error en login errorCode:${errorCode}, msg:${errorMessage}`)
+      });
+  }
+
+  const signOut = () => {
+    firebase.auth().signOut();
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    <AppBar position="static">
+      <Toolbar>
+        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          News
+        </Typography>
+
+        { user ? (
+          <div>
+            {user}
+            <Button onClick={signOut} color="inherit">Logout</Button>
+          </div>
+        ) : 
+        (
+        <Button onClick={signInWithGoogle} color="inherit">Login</Button>
+        )}
+      </Toolbar>
+    </AppBar>
+  )
 }
 
-export default App;
